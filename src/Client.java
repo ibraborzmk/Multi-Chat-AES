@@ -1,9 +1,4 @@
-package reseau;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import javax.management.openmbean.InvalidKeyException;
 import javax.swing.*;
@@ -24,6 +19,7 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+
 
 public class Client implements SocketConnection, ActionListener, ItemListener {
 
@@ -101,7 +97,6 @@ public class Client implements SocketConnection, ActionListener, ItemListener {
 
 	public void mainInterface() {
 
-		window.setTitle(this.clientName.getText());
 		main.setBackground(clientColour);
 
 		labels_cover[3] = new JLabel("Chat :");
@@ -154,7 +149,7 @@ public class Client implements SocketConnection, ActionListener, ItemListener {
 
 					if (p.getToWho().equals("Everyone")) {
 
-						message = message + p.toString() + "\n";
+						message = message + p + "\n";
 						server.setText(message);
 
 					}
@@ -201,24 +196,28 @@ public class Client implements SocketConnection, ActionListener, ItemListener {
 public void communicate() {
     try {
         String message = input.getText();
-        String encryptedMessage = AESenc.encrypt(message);
-        String decryptedMessage = AESenc.decrypt(encryptedMessage);
+		SecretKey Key = AESenc.generateKey();
+        byte[] encryptedMessage = AESenc.encrypt(message,Key);
+
 
         // Afficher le message original, le message crypté et le message décrypté dans la fenêtre de l'utilisateur
         System.out.println("Original: " + message );
         System.out.println("Crypté: " + encryptedMessage );
-        System.out.println("Décrypté: " + decryptedMessage );
 		System.err.println("");
 
 		
 
         // Envoyer le message crypté sur le réseau
-        outputStream.writeObject(new Message(this.clientName.getText(), decryptedMessage, CurrentToWho));
+        outputStream.writeObject(new Message(this.clientName.getText(),encryptedMessage, CurrentToWho,Key));
         outputStream.flush();
+		System.out.print("message envoyer");
+
     } catch (IOException | InvalidKeyException e) {
         e.printStackTrace();
-    }
-    if (input.getText().toLowerCase().equals("bye")) {
+    } catch (Exception e) {
+		throw new RuntimeException(e);
+	}
+	if (input.getText().toLowerCase().equals("bye")) {
         closeConnections();
         System.exit(0);
     }
@@ -226,14 +225,16 @@ public void communicate() {
 }
 
 
-	public void joinUser() {
-
+	public void joinUser() throws NoSuchAlgorithmException {
+		SecretKey key = AESenc.generateKey();
 		try {
-			outputStream.writeObject(new Message("@join", clientName.getText(), "Update"));
+			outputStream.writeObject(new Message("@join", AESenc.encrypt(clientName.getText(),key), "Update",key));
 			outputStream.flush();
 
 		} catch (IOException i) {
 			System.out.println("Error " + i);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 		input.setText("");
 	}
@@ -270,13 +271,18 @@ public void communicate() {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		CardLayout changePages = (CardLayout) (switchPanels.getLayout());
+		window.setTitle(this.clientName.getText());
 		if (e.getSource() == run && port.getText().length() < 1 && clientName.getText().length() < 1) {
 			JOptionPane.showMessageDialog(null, "Tous les formulaires doivent �tre remplis !");
 		}
 		if (e.getSource() == run && port.getText().length() > 0 && clientName.getText().length() > 0) {
 			changePages.show(switchPanels, "main");
 			window.setSize(500, 350);
-			joinUser();
+			try {
+				joinUser();
+			} catch (NoSuchAlgorithmException ex) {
+				throw new RuntimeException(ex);
+			}
 		}
 		if (!input.getText().equals("")) {
 			communicate();
@@ -288,45 +294,12 @@ public void communicate() {
 		}
 	}
 
+
+
+
+
 	public static void main(String[] args) {
 		new Client();
 	}
-	private static class AESenc {
 
-        private static final String ALGO = "AES";
-        private static final byte[] keyValue
-                = new byte[]{'Z', '4', 'e', 't', 'e', '_', 't',
-                            'S', '-', '!', '2', '%', 't', 'K', 'e', ';'};
-
-        public static String encrypt(String data) {
-            try {
-                Key key = generateKey();
-                Cipher c = Cipher.getInstance(ALGO);
-                c.init(Cipher.ENCRYPT_MODE, key);
-                byte[] encVal = c.doFinal(data.getBytes());
-                return Base64.getEncoder().encodeToString(encVal);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-
-        public static String decrypt(String encryptedData) {
-            try {
-                Key key = generateKey();
-                Cipher c = Cipher.getInstance(ALGO);
-                c.init(Cipher.DECRYPT_MODE, key);
-                byte[] decordedValue = Base64.getDecoder().decode(encryptedData);
-                byte[] decValue = c.doFinal(decordedValue);
-                return new String(decValue);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-
-        private static Key generateKey() throws Exception {
-            return new SecretKeySpec(keyValue, ALGO);
-        }
-    }
 }

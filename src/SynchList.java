@@ -1,4 +1,3 @@
-package reseau;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 

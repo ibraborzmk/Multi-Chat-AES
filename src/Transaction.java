@@ -1,9 +1,9 @@
-package reseau;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Transaction extends Thread implements SocketConnection {
     private ObjectInputStream inputStream;
@@ -35,11 +35,11 @@ public class Transaction extends Thread implements SocketConnection {
             while (true) {              
                 message = (Message) inputStream.readObject();
                 if (message.getName().equals("@join")) {
-                    String newUser = message.getMessage();
-                    online_users.add(newUser);
+                    byte[] newUser = message.getMessage();
+                    online_users.add(Arrays.toString(newUser));
                     message.setOnlineUsers(online_users);
-                    message.setMessage(newUser + " a rejoint la conversation !");
-                    message.addOnlineUser(newUser);
+                    message.setMessage((newUser + " a rejoint la conversation !").getBytes());
+                    message.addOnlineUser(Arrays.toString(newUser));
                     message.setName("Server");
                 }
 
@@ -59,7 +59,7 @@ public class Transaction extends Thread implements SocketConnection {
 
     public void clientLeft(Message m) {
         online_users.remove(m.getName());
-        m.setMessage(m.getName() + " a quitt� la conversation!");
+        m.setMessage((m.getName() + " a quitt� la conversation!").getBytes());
         m.setToWho("Update");
         m.setName("Server");
         message = m;

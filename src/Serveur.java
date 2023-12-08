@@ -1,4 +1,3 @@
-package reseau;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -77,13 +76,13 @@ public class Serveur implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == run && port.getText().length() < 1) {
-            JOptionPane.showMessageDialog(null, "Un numéro de port doit être saisi !");
+            JOptionPane.showMessageDialog(null, "Un numï¿½ro de port doit ï¿½tre saisi !");
         }
         if (e.getSource() == run && port.getText().length() > 0) {
 
             port_number = Integer.parseInt(port.getText());
             JOptionPane.showMessageDialog(null,
-                    "Le serveur écoute maintenant en arrière-plan sur le port " + port_number);
+                    "Le serveur ï¿½coute maintenant en arriï¿½re-plan sur le port " + port_number);
             runServer();
             window.setState(Frame.ICONIFIED);
         }
