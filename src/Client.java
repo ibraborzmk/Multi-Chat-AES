@@ -149,7 +149,7 @@ public class Client implements SocketConnection, ActionListener, ItemListener {
 
 					if (p.getToWho().equals("Everyone")) {
 
-						message = message + p + "\n";
+						message = message + AESenc.decrypt(p.getMessage(),p.getKey()) + "\n";
 						server.setText(message);
 
 					}
@@ -161,7 +161,7 @@ public class Client implements SocketConnection, ActionListener, ItemListener {
 					}
 
 					if (p.getToWho().toLowerCase().equals(clientName.getText().toLowerCase())) {
-						message = message + p.toString() + "\n";
+						message = message +AESenc.decrypt(p.getMessage(),p.getKey()) + "\n";
 						server.setText(message);
 					}
 
