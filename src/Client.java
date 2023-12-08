@@ -158,7 +158,6 @@ public class Client implements SocketConnection, ActionListener, ItemListener {
 						updateOnlineUsers(p.getOnlineUsers());
 						message = message + p.toString() + "\n";
 						server.setText(message);
-
 					}
 
 					if (p.getToWho().toLowerCase().equals(clientName.getText().toLowerCase())) {
